@@ -129,6 +129,26 @@ class ReportAgent:
         elif unique_sources == 2:
             add_component("source_diversity_reward", 0.015)
 
+        sec_source_count = sum(1 for c in citations if str(c.get("source", "")).startswith("sec_"))
+        institutional_source_count = sum(
+            1 for c in citations if str(c.get("source", "")).startswith("institutional_report")
+        )
+        news_source_count = sum(1 for c in citations if str(c.get("source", "")) == "news_search_brave")
+        if sec_source_count >= 2:
+            add_component("sec_evidence_reward", 0.04)
+        elif sec_source_count == 0:
+            add_component("sec_evidence_penalty", -0.08)
+
+        if institutional_source_count >= 3:
+            add_component("institutional_evidence_reward", 0.05)
+        elif institutional_source_count >= 1:
+            add_component("institutional_evidence_reward", 0.02)
+
+        if institutional_source_count > 0 and sec_source_count > 0:
+            add_component("cross_tier_evidence_reward", 0.02)
+        if news_source_count >= 4 and news_source_count > (sec_source_count + institutional_source_count):
+            add_component("news_dominance_penalty", -0.03)
+
         peers = research.get("deep_dive", {}).get("peer_positioning", {}).get("data", {}).get("peers", [])
         if isinstance(peers, list) and len(peers) >= 3:
             add_component("peer_coverage_reward", 0.02)

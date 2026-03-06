@@ -59,13 +59,20 @@ class Orchestrator:
             market_task = self.market.get_price_series(symbol)
             macro_task = self.macro.get_blended_macro() if include_macro else asyncio.sleep(0, result={})
             news_task = self.search.search_company_news(symbol, company_name=company.get("title"), count=5)
+            institutional_task = self.search.search_institutional_reports(
+                symbol,
+                company_name=company.get("title"),
+                count=8 if depth == "deep" else 5,
+                depth=depth,
+            )
 
-            submissions, company_facts, market_data, macro_data, news = await asyncio.gather(
+            submissions, company_facts, market_data, macro_data, news, institutional_reports = await asyncio.gather(
                 submissions_task,
                 facts_task,
                 market_task,
                 macro_task,
                 news_task,
+                institutional_task,
                 return_exceptions=True,
             )
 
@@ -81,6 +88,8 @@ class Orchestrator:
                 macro_data = {}
             if isinstance(news, Exception):
                 news = []
+            if isinstance(institutional_reports, Exception):
+                institutional_reports = []
 
             self.storage.update_job(job_id, status="running", progress=45)
             kpis = self.sec.extract_latest_kpis(company_facts)
@@ -100,6 +109,7 @@ class Orchestrator:
                 filings=filings,
                 kpis=kpis,
                 news=news,
+                institutional_reports=institutional_reports,
                 depth=depth,
                 technical_profile=technical_profile,
                 peer_snapshot=peer_snapshot,
@@ -136,6 +146,16 @@ class Orchestrator:
                     "crosscheck_provider": "stooq",
                     "crosscheck_close": round(crosscheck_close, 4) if isinstance(crosscheck_close, float) else None,
                     "crosscheck_diff_pct": round(crosscheck_diff_pct, 4) if isinstance(crosscheck_diff_pct, float) else None,
+                },
+                "source_coverage": {
+                    "filings_count": len(filings),
+                    "institutional_reports_count": len(institutional_reports),
+                    "news_count": len(news),
+                    "top_institutional_domains": [
+                        row.get("institution_domain")
+                        for row in institutional_reports[:5]
+                        if isinstance(row, dict) and row.get("institution_domain")
+                    ],
                 },
             }
             if include_macro and macro_data:
@@ -191,6 +211,29 @@ class Orchestrator:
                         "retrieved_at": n.get("retrieved_at", datetime.now(timezone.utc).isoformat()),
                     }
                 )
+            for row in institutional_reports:
+                domain = str(row.get("institution_domain", "")).replace(".", "_").replace("-", "_")
+                source_name = f"institutional_report_{domain}" if domain else "institutional_report"
+                citations.append(
+                    {
+                        "source": source_name,
+                        "url": row.get("url", ""),
+                        "retrieved_at": row.get("retrieved_at", datetime.now(timezone.utc).isoformat()),
+                    }
+                )
+            dedup_citations: list[dict[str, str]] = []
+            seen_citation_keys: set[tuple[str, str]] = set()
+            for cite in citations:
+                source = str(cite.get("source", "")).strip()
+                url = str(cite.get("url", "")).strip()
+                if not source or not url:
+                    continue
+                key = (source, url)
+                if key in seen_citation_keys:
+                    continue
+                seen_citation_keys.add(key)
+                dedup_citations.append(cite)
+            citations = dedup_citations
 
             report = self.report_agent.build(
                 symbol=symbol,

@@ -17,15 +17,21 @@ class ResearchAgent:
         filings: list[dict[str, Any]],
         kpis: dict[str, float],
         news: list[dict[str, Any]],
+        institutional_reports: list[dict[str, Any]] | None = None,
         depth: str = "standard",
         technical_profile: dict[str, Any] | None = None,
         peer_snapshot: dict[str, Any] | None = None,
         macro_data: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
+        institutional_reports = institutional_reports or []
+
         if depth == "deep":
             system = (
                 "You are a senior equity research analyst producing a thorough stock report. "
-                "Use only provided evidence. Return strict JSON with keys: "
+                "Use only provided evidence. Prioritize evidence in this order: "
+                "SEC filings/company facts, institutional_reports, official macro data, then generic news. "
+                "If lower-tier sources conflict with higher-tier sources, trust higher-tier sources and note the conflict. "
+                "Return strict JSON with keys: "
                 "thesis, key_points(list), risk_flags(list), confidence(0..1), "
                 "deep_dive(object with keys: business_quality, growth_profitability, "
                 "technical_view, peer_positioning, catalysts, bear_case, bull_case, watch_items)."
@@ -33,6 +39,7 @@ class ResearchAgent:
         else:
             system = (
                 "You are a financial research analyst. Use only supplied evidence and produce concise factual output. "
+                "Prioritize SEC and institutional_reports over generic news when evidence quality differs. "
                 "Return strict JSON with keys: thesis, key_points(list), risk_flags(list), confidence(0..1)."
             )
         user = {
@@ -40,6 +47,7 @@ class ResearchAgent:
             "company_name": company_name,
             "filings": filings[:6],
             "kpis": kpis,
+            "institutional_reports": institutional_reports[:10],
             "news": news,
             "technical_profile": technical_profile or {},
             "peer_snapshot": peer_snapshot or {},
@@ -68,6 +76,10 @@ class ResearchAgent:
             "Revenue and earnings trajectory inferred from latest SEC facts.",
             "Recent filings reviewed for disclosure changes.",
         ]
+        if institutional_reports:
+            parsed["key_points"].append(
+                f"Institutional-source coverage included {len(institutional_reports)} report references."
+            )
         parsed["risk_flags"] = parsed.get("risk_flags") or [
             "Macro slowdown could compress multiples.",
             "Execution risk on guidance and margin targets.",

@@ -17,7 +17,7 @@ A local multi-agent financial analysis service using free-tier model/tool APIs f
 
 ## macOS setup
 ```bash
-cd /Users/vincent/Desktop/FinancialAnalystAgent
+cd /Users/vincent/Desktop/FinAgent_Vincent
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -28,6 +28,7 @@ Edit `.env` and set keys you have. Minimum recommended:
 - `SEC_USER_AGENT` (must be valid for SEC fair access, use your real email)
 - One model key: `GROQ_API_KEY` or `OPENROUTER_API_KEY`
 - One market data key: `FMP_API_KEY` or `ALPHA_VANTAGE_API_KEY`
+- `BRAVE_API_KEY` (recommended for institutional research/report discovery)
 
 ## Run API server
 ```bash

@@ -101,6 +101,16 @@ label {
   color: var(--ink-soft);
 }
 
+label small {
+  font-size: 0.75rem;
+  color: #5f6f7d;
+  line-height: 1.25;
+}
+
+.controls .wide {
+  grid-column: span 2;
+}
+
 input,
 select,
 button {
@@ -264,6 +274,10 @@ pre {
   .controls,
   .cards {
     grid-template-columns: 1fr;
+  }
+
+  .controls .wide {
+    grid-column: span 1;
   }
 
   .app-shell {

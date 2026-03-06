@@ -40,6 +40,28 @@ Open UI in browser:
 http://127.0.0.1:8000/
 ```
 
+## Deploy frontend on GitHub Pages
+This repo is now ready for direct GitHub Pages deploy from branch root.
+
+1. Push this repo to GitHub.
+2. Go to `Settings -> Pages`.
+3. Under `Build and deployment`, set:
+   - Source: `Deploy from a branch`
+   - Branch: `main` (or your branch)
+   - Folder: `/ (root)`
+4. Open your Pages URL (for example: `https://<user>.github.io/<repo>/`).
+5. In the UI, set `API Base URL` to your backend URL (for example: `https://your-api.example.com`).
+
+Notes:
+- `API Base URL` is saved in browser local storage.
+- You can override it via URL query param: `?api_base=https://your-api.example.com`.
+- Leave it empty only when frontend and backend are served from the same origin.
+
+Backend CORS is enabled for local origins and `https://*.github.io` by default.
+Optional environment overrides:
+- `CORS_ALLOW_ORIGINS` (comma-separated)
+- `CORS_ALLOW_ORIGIN_REGEX`
+
 ## Analyze a ticker (API)
 ```bash
 curl -s -X POST http://127.0.0.1:8000/v1/analyze \

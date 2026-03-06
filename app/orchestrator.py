@@ -84,6 +84,11 @@ class Orchestrator:
                 bars, market_provider = [], "none"
             else:
                 bars, market_provider = market_data
+            if not bars:
+                raise RuntimeError(
+                    "Unable to fetch market price data for this symbol. "
+                    "Check internet connectivity or set FMP_API_KEY / ALPHA_VANTAGE_API_KEY."
+                )
             if isinstance(macro_data, Exception):
                 macro_data = {}
             if isinstance(news, Exception):
@@ -200,6 +205,14 @@ class Orchestrator:
                     {
                         "source": "market_data_stooq",
                         "url": "https://stooq.com/db/h/",
+                        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
+            elif market_provider == "yahoo":
+                citations.append(
+                    {
+                        "source": "market_data_yahoo",
+                        "url": "https://query1.finance.yahoo.com/v8/finance/chart/",
                         "retrieved_at": datetime.now(timezone.utc).isoformat(),
                     }
                 )

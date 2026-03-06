@@ -41,6 +41,11 @@ Open UI in browser:
 http://127.0.0.1:8000/
 ```
 
+If you previously saw all-zero outputs (base/bull/bear = `0.0`), upgrade to latest code and retry.
+The app now:
+- uses Yahoo as an additional no-key market data fallback,
+- fails the job with a clear error when no market bars can be fetched (instead of returning junk analysis).
+
 ## Analyze a ticker (API)
 ```bash
 curl -s -X POST http://127.0.0.1:8000/v1/analyze \

@@ -39,9 +39,6 @@ class Settings(BaseSettings):
 
     request_timeout_seconds: float = 30.0
 
-    cors_allow_origins: str = "http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000,http://127.0.0.1:3000"
-    cors_allow_origin_regex: str = r"^https://.*\.github\.io$"
-
     groq_limits_per_minute: int = 30
     groq_limits_per_day: int = 300
     openrouter_limits_per_minute: int = 30

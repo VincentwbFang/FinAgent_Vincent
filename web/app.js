@@ -9,61 +9,10 @@ const narrativeEl = document.getElementById("narrative");
 const metricsCards = document.getElementById("metrics-cards");
 const jsonBlock = document.getElementById("json-block");
 const langButtons = [...document.querySelectorAll(".lang-btn")];
-const apiBaseInput = document.getElementById("api-base");
-const apiBaseHelp = document.getElementById("api-base-help");
-const API_BASE_STORAGE_KEY = "atlas.apiBase";
 
 let currentJobId = null;
 let currentReport = null;
 let currentLang = "en";
-let apiBase = "";
-
-function normalizeApiBase(value) {
-  if (!value) return "";
-  return String(value).trim().replace(/\/+$/, "");
-}
-
-function resolveInitialApiBase() {
-  const queryApiBase = new URLSearchParams(window.location.search).get("api_base");
-  if (queryApiBase !== null) return normalizeApiBase(queryApiBase);
-
-  const saved = window.localStorage.getItem(API_BASE_STORAGE_KEY);
-  if (saved) return normalizeApiBase(saved);
-
-  const metaValue = document.querySelector('meta[name="api-base"]')?.content;
-  if (metaValue) return normalizeApiBase(metaValue);
-
-  return "";
-}
-
-function updateApiBaseHelp() {
-  if (!apiBaseHelp) return;
-  if (apiBase) {
-    apiBaseHelp.textContent = `Using API: ${apiBase}`;
-    return;
-  }
-
-  if (window.location.hostname.endsWith("github.io")) {
-    apiBaseHelp.textContent = "Set this to your backend URL when using GitHub Pages.";
-    return;
-  }
-
-  apiBaseHelp.textContent = "Leave empty for same-origin API. For GitHub Pages, set your backend URL.";
-}
-
-function applyApiBaseInput() {
-  apiBase = normalizeApiBase(apiBaseInput?.value || "");
-  if (apiBase) {
-    window.localStorage.setItem(API_BASE_STORAGE_KEY, apiBase);
-  } else {
-    window.localStorage.removeItem(API_BASE_STORAGE_KEY);
-  }
-  updateApiBaseHelp();
-}
-
-function apiUrl(path) {
-  return `${apiBase}${path}`;
-}
 
 function fmtNumber(value) {
   if (value === null || value === undefined) return "-";
@@ -101,7 +50,7 @@ function renderCards(report) {
 }
 
 async function fetchReadable(jobId, lang) {
-  const res = await fetch(apiUrl(`/v1/reports/${jobId}/readable?lang=${lang}`));
+  const res = await fetch(`/v1/reports/${jobId}/readable?lang=${lang}`);
   if (!res.ok) throw new Error(`Readable fetch failed: ${res.status}`);
   return res.text();
 }
@@ -125,7 +74,7 @@ async function refreshNarrative() {
 
 async function pollJob(jobId) {
   while (true) {
-    const res = await fetch(apiUrl(`/v1/jobs/${jobId}`));
+    const res = await fetch(`/v1/jobs/${jobId}`);
     if (!res.ok) {
       throw new Error(`Job polling failed: ${res.status}`);
     }
@@ -147,17 +96,10 @@ async function pollJob(jobId) {
 }
 
 async function fetchReport(jobId) {
-  const res = await fetch(apiUrl(`/v1/reports/${jobId}`));
+  const res = await fetch(`/v1/reports/${jobId}`);
   if (!res.ok) throw new Error(`Report fetch failed: ${res.status}`);
   return res.json();
 }
-
-apiBase = resolveInitialApiBase();
-if (apiBaseInput) {
-  apiBaseInput.value = apiBase;
-  apiBaseInput.addEventListener("change", applyApiBaseInput);
-}
-updateApiBaseHelp();
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -182,7 +124,7 @@ form.addEventListener("submit", async (event) => {
       valuation_modes: ["dcf", "multiples", "scenarios"],
     };
 
-    const startRes = await fetch(apiUrl("/v1/analyze"), {
+    const startRes = await fetch("/v1/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -209,12 +151,7 @@ form.addEventListener("submit", async (event) => {
     resultPanel.classList.remove("hidden");
   } catch (err) {
     resultPanel.classList.remove("hidden");
-    if (err instanceof TypeError && window.location.hostname.endsWith("github.io") && !apiBase) {
-      narrativeEl.textContent =
-        "Error: API is unreachable. Set API Base URL first (example: https://your-backend.example.com).";
-    } else {
-      narrativeEl.textContent = `Error: ${err.message}`;
-    }
+    narrativeEl.textContent = `Error: ${err.message}`;
     metricsCards.innerHTML = "";
     jsonBlock.textContent = "";
   } finally {

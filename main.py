@@ -3,8 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
@@ -13,15 +12,6 @@ from app.schemas import AnalysisReport, AnalyzeRequest, JobCreated, JobStatus
 from app.storage import Storage
 
 app = FastAPI(title=settings.app_name, version="1.0.0")
-cors_origins = [origin.strip() for origin in settings.cors_allow_origins.split(",") if origin.strip()]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_origin_regex=settings.cors_allow_origin_regex or None,
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 storage = Storage(settings.database_url)
 orchestrator = Orchestrator(settings, storage)
 web_dir = Path(__file__).parent / "web"
@@ -35,10 +25,11 @@ def health() -> dict[str, str]:
 
 
 @app.get("/", include_in_schema=False)
-def home() -> RedirectResponse:
-    if not web_dir.exists():
+def home() -> FileResponse:
+    index = web_dir / "index.html"
+    if not index.exists():
         raise HTTPException(status_code=404, detail="frontend not found")
-    return RedirectResponse(url="/web/index.html")
+    return FileResponse(index)
 
 
 @app.post("/v1/analyze", response_model=JobCreated)

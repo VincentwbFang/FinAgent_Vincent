@@ -40,47 +40,6 @@ Open UI in browser:
 http://127.0.0.1:8000/
 ```
 
-## One-URL deploy from GitHub (recommended)
-If you want frontend and backend together (single URL), deploy this repo as one Python web service on Render.
-This repo includes `render.yaml`, so you do not need GitHub Pages for this mode.
-
-1. Push this repo to GitHub.
-2. In Render, click `New + -> Blueprint`.
-3. Select your repo and create the service.
-4. In Render service `Environment`, set at least:
-   - `SEC_USER_AGENT`
-   - one model key (`GROQ_API_KEY` or `OPENROUTER_API_KEY`)
-   - one market key (`FMP_API_KEY` or `ALPHA_VANTAGE_API_KEY`)
-5. Deploy, then open the Render URL.
-
-Result:
-- One link serves both UI and API.
-- Open `https://your-service.onrender.com/` and run analysis directly.
-- `API Base URL` can stay empty because frontend/backend are same origin.
-
-## Deploy frontend on GitHub Pages
-This repo is ready for GitHub Pages deploy from either branch root or `/docs`.
-If GitHub does not let you save `/ (root)`, use `/docs`.
-
-1. Push this repo to GitHub.
-2. Go to `Settings -> Pages`.
-3. Under `Build and deployment`, set:
-   - Source: `Deploy from a branch`
-   - Branch: `main` (or your branch)
-   - Folder: `/docs` (recommended when root cannot be saved)
-4. Open your Pages URL (for example: `https://<user>.github.io/<repo>/`).
-5. In the UI, set `API Base URL` to your backend URL (for example: `https://your-api.example.com`).
-
-Notes:
-- `API Base URL` is saved in browser local storage.
-- You can override it via URL query param: `?api_base=https://your-api.example.com`.
-- Leave it empty only when frontend and backend are served from the same origin.
-
-Backend CORS is enabled for local origins and `https://*.github.io` by default.
-Optional environment overrides:
-- `CORS_ALLOW_ORIGINS` (comma-separated)
-- `CORS_ALLOW_ORIGIN_REGEX`
-
 ## Analyze a ticker (API)
 ```bash
 curl -s -X POST http://127.0.0.1:8000/v1/analyze \

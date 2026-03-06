@@ -3,9 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="api-base" content="" />
     <title>Atlas Equity Analyst</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="/web/styles.css" />
   </head>
   <body>
     <div class="bg-orb orb-a"></div>
@@ -46,12 +45,6 @@
             <span>Include macro context</span>
           </label>
 
-          <label class="wide">
-            <span>API Base URL</span>
-            <input id="api-base" name="api-base" type="url" placeholder="https://your-api.example.com" />
-            <small id="api-base-help">Leave empty for same-origin API. For GitHub Pages, set your backend URL.</small>
-          </label>
-
           <button id="run-btn" type="submit">Run Analysis</button>
         </form>
 
@@ -84,6 +77,6 @@
       </section>
     </main>
 
-    <script src="app.js" type="module"></script>
+    <script src="/web/app.js" type="module"></script>
   </body>
 </html>

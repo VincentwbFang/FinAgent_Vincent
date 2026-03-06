@@ -1,0 +1,80 @@
+from __future__ import annotations
+from datetime import datetime
+from pathlib import Path
+
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
+from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
+
+from app.config import settings
+from app.orchestrator import Orchestrator
+from app.schemas import AnalysisReport, AnalyzeRequest, JobCreated, JobStatus
+from app.storage import Storage
+
+app = FastAPI(title=settings.app_name, version="1.0.0")
+storage = Storage(settings.database_url)
+orchestrator = Orchestrator(settings, storage)
+web_dir = Path(__file__).parent / "web"
+if web_dir.exists():
+    app.mount("/web", StaticFiles(directory=str(web_dir)), name="web")
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@app.get("/", include_in_schema=False)
+def home() -> FileResponse:
+    index = web_dir / "index.html"
+    if not index.exists():
+        raise HTTPException(status_code=404, detail="frontend not found")
+    return FileResponse(index)
+
+
+@app.post("/v1/analyze", response_model=JobCreated)
+async def analyze(request: AnalyzeRequest, background_tasks: BackgroundTasks) -> JobCreated:
+    payload = request.model_dump()
+    payload["symbol"] = request.symbol.upper()
+    job_id = storage.create_job(symbol=request.symbol, request_payload=payload)
+
+    background_tasks.add_task(orchestrator.run_job, job_id, payload)
+    return JobCreated(job_id=job_id, status="queued")
+
+
+@app.get("/v1/jobs/{job_id}", response_model=JobStatus)
+def get_job(job_id: str) -> JobStatus:
+    row = storage.get_job(job_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="job not found")
+    updated_at = datetime.fromisoformat(row["updated_at"])
+    return JobStatus(
+        job_id=row["job_id"],
+        status=row["status"],
+        progress=row["progress"],
+        error=row["error"],
+        updated_at=updated_at,
+    )
+
+
+@app.get("/v1/reports/{job_id}", response_model=AnalysisReport)
+def get_report(job_id: str) -> AnalysisReport:
+    row = storage.get_report(job_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="report not found")
+    return AnalysisReport.model_validate(row)
+
+
+@app.get("/v1/reports/{job_id}/readable", response_class=PlainTextResponse)
+def get_report_readable(job_id: str, lang: str = Query(default="en", pattern="^(en|zh|both)$")) -> str:
+    row = storage.get_report(job_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="report not found")
+    report = AnalysisReport.model_validate(row)
+    en_text = report.narrative_en or report.narrative or report.thesis
+    zh_text = report.narrative_zh or en_text
+    if lang == "zh":
+        return zh_text
+    if lang == "both":
+        return f"[English]\n{en_text}\n\n[中文]\n{zh_text}"
+    return en_text

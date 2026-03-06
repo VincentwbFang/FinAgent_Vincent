@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atlas Equity Analyst</title>
+    <link rel="stylesheet" href="/web/styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <main class="app-shell">
+      <section class="hero fade-in">
+        <p class="eyebrow">Financial Analysis Agent</p>
+        <h1>Atlas Equity Analyst</h1>
+        <p class="subtitle">
+          Analyze any U.S. stock with structured valuation, risk diagnostics, peer comparison, and bilingual narrative output.
+        </p>
+      </section>
+
+      <section class="panel slide-up">
+        <form id="analyze-form" class="controls">
+          <label>
+            <span>Ticker</span>
+            <input id="symbol" name="symbol" value="AAPL" maxlength="10" required />
+          </label>
+
+          <label>
+            <span>Horizon (days)</span>
+            <input id="horizon" name="horizon" type="number" min="30" max="1825" value="365" />
+          </label>
+
+          <label>
+            <span>Depth</span>
+            <select id="depth" name="depth">
+              <option value="quick">Quick</option>
+              <option value="standard">Standard</option>
+              <option value="deep" selected>Deep</option>
+            </select>
+          </label>
+
+          <label class="checkbox-row">
+            <input id="macro" name="macro" type="checkbox" checked />
+            <span>Include macro context</span>
+          </label>
+
+          <button id="run-btn" type="submit">Run Analysis</button>
+        </form>
+
+        <div id="job-box" class="job-box hidden">
+          <p id="job-line"></p>
+          <div class="progress-track">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="result-panel" class="panel hidden slide-up">
+        <div class="result-head">
+          <h2 id="result-title">Result</h2>
+          <div class="lang-switch">
+            <button type="button" data-lang="en" class="lang-btn active">English</button>
+            <button type="button" data-lang="zh" class="lang-btn">中文</button>
+            <button type="button" data-lang="both" class="lang-btn">Both</button>
+          </div>
+        </div>
+
+        <article id="narrative" class="narrative"></article>
+
+        <div class="cards" id="metrics-cards"></div>
+
+        <details class="raw-json">
+          <summary>Raw JSON</summary>
+          <pre id="json-block"></pre>
+        </details>
+      </section>
+    </main>
+
+    <script src="/web/app.js" type="module"></script>
+  </body>
+</html>

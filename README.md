@@ -41,14 +41,15 @@ http://127.0.0.1:8000/
 ```
 
 ## Deploy frontend on GitHub Pages
-This repo is now ready for direct GitHub Pages deploy from branch root.
+This repo is ready for GitHub Pages deploy from either branch root or `/docs`.
+If GitHub does not let you save `/ (root)`, use `/docs`.
 
 1. Push this repo to GitHub.
 2. Go to `Settings -> Pages`.
 3. Under `Build and deployment`, set:
    - Source: `Deploy from a branch`
    - Branch: `main` (or your branch)
-   - Folder: `/ (root)`
+   - Folder: `/docs` (recommended when root cannot be saved)
 4. Open your Pages URL (for example: `https://<user>.github.io/<repo>/`).
 5. In the UI, set `API Base URL` to your backend URL (for example: `https://your-api.example.com`).
 

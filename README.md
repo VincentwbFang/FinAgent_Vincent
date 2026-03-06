@@ -40,6 +40,24 @@ Open UI in browser:
 http://127.0.0.1:8000/
 ```
 
+## One-URL deploy from GitHub (recommended)
+If you want frontend and backend together (single URL), deploy this repo as one Python web service on Render.
+This repo includes `render.yaml`, so you do not need GitHub Pages for this mode.
+
+1. Push this repo to GitHub.
+2. In Render, click `New + -> Blueprint`.
+3. Select your repo and create the service.
+4. In Render service `Environment`, set at least:
+   - `SEC_USER_AGENT`
+   - one model key (`GROQ_API_KEY` or `OPENROUTER_API_KEY`)
+   - one market key (`FMP_API_KEY` or `ALPHA_VANTAGE_API_KEY`)
+5. Deploy, then open the Render URL.
+
+Result:
+- One link serves both UI and API.
+- Open `https://your-service.onrender.com/` and run analysis directly.
+- `API Base URL` can stay empty because frontend/backend are same origin.
+
 ## Deploy frontend on GitHub Pages
 This repo is ready for GitHub Pages deploy from either branch root or `/docs`.
 If GitHub does not let you save `/ (root)`, use `/docs`.
